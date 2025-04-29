@@ -239,13 +239,13 @@ def plot_rental_vs_owner(real_census, state, county, property_type, year_range):
     if year_range[0] is not None and year_range[1] is not None and 'year' in df.columns:
         df = df[(df['year'] >= year_range[0]) & (df['year'] <= year_range[1])]
     df['total_units'] = df['b25003_002e'] + df['b25003_003e']
-    df['b25003_002e_percentage'] = df['b25003_002e'] / df['total_units'] * 100
-    df['b25003_003e_percentage'] = df['b25003_003e'] / df['total_units'] * 100
-    df = df.sort_values(by='b25003_002e_percentage', ascending=False)
+    df['Owner_percentage'] = df['b25003_002e'] / df['total_units'] * 100
+    df['Rental_percentage'] = df['b25003_003e'] / df['total_units'] * 100
+    df = df.sort_values(by='Owner_percentage', ascending=False)
 
     st.subheader(f"Distribution of Rental vs Owner-Occupied Properties by County in {state}")
     if not df.empty:
-        fig = px.bar(df, x='parent_metro_region', y=['b25003_002e_percentage', 'b25003_003e_percentage'],
+        fig = px.bar(df, x='parent_metro_region', y=['Owner_percentage', 'Rental_percentage'],
                      labels={'value': 'Percentage of Total Housing Units', 'parent_metro_region': 'County', 'variable': 'Type'},
                      barmode='group', height=500)
         st.plotly_chart(fig, use_container_width=True)
