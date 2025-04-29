@@ -1,0 +1,15 @@
+streamlit==1.32.2
+pandas==2.2.2
+numpy==1.26.4
+matplotlib==3.8.4
+seaborn==0.13.2
+plotly==5.21.0
+folium==0.16.0
+geopandas==0.14.3
+scikit-learn==1.4.2
+nltk==3.8.1
+torch==2.2.2
+transformers==4.40.2
+openpyxl==3.1.2
+onnxruntime==1.16.3  # Specific stable version
+onnxruntime-gpu==1.16.3  # If using GPU
