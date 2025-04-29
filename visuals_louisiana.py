@@ -26,41 +26,101 @@ def plot_avg_housing_prices(real_df, state, county, property_type, year_range):
     else:
         st.info("No data available for the selected filters.")
 
-@st.cache_data
+@st.cache_data(ttl=3600)  # Cache for 1 hour
 def plot_crime_vs_price(real_df, crime_data, state, county, property_type, year_range):
-    crime_merge = pd.merge(
-        real_df,
-        crime_data,
-        left_on=['city', 'state'],
-        right_on=['city', 'state'],
-        how='inner'
-    )
-    crime_merge = crime_merge[crime_merge['state'] == state]
-    if county != "All":
-        crime_merge = crime_merge[crime_merge['parent_metro_region'] == county]
-    if property_type != "All":
-        crime_merge = crime_merge[crime_merge['property_type'] == property_type]
-    if year_range[0] is not None and year_range[1] is not None and 'year' in crime_merge.columns:
-        crime_merge = crime_merge[(crime_merge['year'] >= year_range[0]) & (crime_merge['year'] <= year_range[1])]
-    if 'total_crimes' not in crime_merge.columns:
-        crime_merge['total_crimes'] = crime_merge[['violent_crime', 'property_crime', 'arson3']].sum(axis=1)
-    if 'crime_rate' not in crime_merge.columns:
+    """
+    Optimized function to plot crime rate vs median sale price
+    """
+    # Input validation
+    if not isinstance(year_range, (list, tuple)) or len(year_range) != 2:
+        st.error("Invalid year range format")
+        return
+    
+    with st.spinner("Processing crime and price data..."):
+        # Filter the datasets first before merging (much more efficient)
+        real_filtered = real_df[real_df['state'] == state].copy()
+        crime_filtered = crime_data[crime_data['state'] == state].copy()
+        
+        # Early return if no data for state
+        if real_filtered.empty or crime_filtered.empty:
+            st.info(f"No data available for state: {state}")
+            return
+        
+        # Apply additional filters before merging
+        if county != "All":
+            real_filtered = real_filtered[real_filtered['parent_metro_region'] == county].copy()
+            crime_filtered = crime_filtered[crime_filtered['parent_metro_region'] == county].copy()
+        
+        if property_type != "All":
+            real_filtered = real_filtered[real_filtered['property_type'] == property_type].copy()
+        
+        # Merge the pre-filtered datasets
+        crime_merge = pd.merge(
+            real_filtered,
+            crime_filtered,
+            on=['city', 'state'],
+            how='inner'  # Only keep matching records
+        )
+        
+        # Apply year filter if needed
+        if year_range[0] is not None and year_range[1] is not None and 'year' in crime_merge.columns:
+            crime_merge = crime_merge[
+                (crime_merge['year'] >= year_range[0]) & 
+                (crime_merge['year'] <= year_range[1])
+            ].copy()
+        
+        # Early return if no data after filtering
+        if crime_merge.empty:
+            st.info("No data available for the selected filters.")
+            return
+        
+        # Calculate crime metrics
+        crime_cols = ['violent_crime', 'property_crime', 'arson3']
+        crime_merge['total_crimes'] = crime_merge[crime_cols].sum(axis=1)
         crime_merge['crime_rate'] = crime_merge['total_crimes'] / crime_merge['population']
+        
+        # Sample if dataset is too large
+        if len(crime_merge) > 5000:  # Reduced from 10,000 for scatter plots
+            crime_merge = crime_merge.sample(5000, random_state=42)
+            st.warning("Displaying a sample of 5,000 records for better performance")
+    
+    # Plotting section
     st.subheader(f"Crime Rate vs. Median Sale Price by County in {state}")
+    
     if not crime_merge.empty:
-        fig2 = px.scatter(
+        # Create figure with optimized parameters
+        fig = px.scatter(
             crime_merge,
             x='crime_rate',
             y='median_sale_price',
             color='parent_metro_region',
-            hover_data=['city', 'parent_metro_region', 'median_sale_price', 'crime_rate'],
-            labels={'crime_rate': 'Crime Rate', 'median_sale_price': 'Median Sale Price ($)'},
-            title=f'Crime Rate vs. Median Sale Price by County in {state}',
-            height=500
+            hover_data={
+                'city': True,
+                'parent_metro_region': True,
+                'median_sale_price': ':.2f',
+                'crime_rate': ':.4f',
+                'total_crimes': True
+            },
+            labels={
+                'crime_rate': 'Crime Rate (per capita)',
+                'median_sale_price': 'Median Sale Price ($)',
+                'parent_metro_region': 'County'
+            },
+            height=600,  # Slightly taller for better visibility
+            render_mode='webgl',  # Faster rendering
+            trendline='lowess',  # Optional: show trend line
+            trendline_options=dict(frac=0.3)  # Smoothing factor
         )
-        st.plotly_chart(fig2, use_container_width=True)
-    else:
-        st.info("No data available for the selected filters.")
+        
+        # Improve layout
+        fig.update_layout(
+            hovermode='closest',
+            xaxis_title='Crime Rate (crimes per capita)',
+            yaxis_title='Median Sale Price ($)',
+            legend_title='Counties'
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
 
 @st.cache_data
 def plot_top5_safest_dangerous(real_df, crime_data, state, county, property_type, year_range):
