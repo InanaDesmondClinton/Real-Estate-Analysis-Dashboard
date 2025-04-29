@@ -11,3 +11,4 @@ nltk==3.8.1
 torch==2.2.2
 transformers==4.40.2
 openpyxl==3.1.2
+statsmodels>=0.14.0
