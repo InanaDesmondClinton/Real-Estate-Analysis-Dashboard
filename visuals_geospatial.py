@@ -169,7 +169,7 @@ def plot_population_change(census_all, state):
     )
     
     pop_change['state'] = state  # Reattach state info if needed later
-
+    pop_change = pop_change[pop_change['b25077_001e_2017'] != -666666666]
     # Calculate percentage changes
     pop_change['pop_change_pct'] = (
         (pop_change['b01003_001e_2017'] - pop_change['b01003_001e_2015']) / 
@@ -289,7 +289,7 @@ def gentrification_analysis(census_data, state):
         data_2017[['name', 'b19013_001e', 'b25077_001e']],
         on='name', suffixes=('_2015', '_2017')
     )
-
+    changes = changes[changes['b25077_001e_2017'] != -666666666]
     # Calculate percentage changes
     changes['income_change_pct'] = ((changes['b19013_001e_2017'] - changes['b19013_001e_2015']) /
                                     changes['b19013_001e_2015']) * 100
