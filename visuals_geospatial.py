@@ -229,7 +229,7 @@ def plot_population_change(census_all, state):
 
     st.plotly_chart(scatter_fig, use_container_width=True)
 
-    # --- BAR CHARTS: TOP GROWING and DECLINING COUNTIES ---
+    # --- BAR CHARTS: TOP GROWING and DECLINING CITIES ---
 
     # Prepare top growing and declining
     top_growing = pop_change.sort_values('pop_change_pct', ascending=False).head(10)
@@ -237,7 +237,7 @@ def plot_population_change(census_all, state):
 
     # Create two bar charts side by side
     bar_fig = make_subplots(
-        rows=1, cols=2, subplot_titles=(f"Top 10 Growing Cities in {state}", f"Top 10 Declining Counties in {state}")
+        rows=1, cols=2, subplot_titles=(f"Top 10 Growing Cities in {state}", f"Top 10 Declining Cities in {state}")
     )
 
     # Top growing counties
