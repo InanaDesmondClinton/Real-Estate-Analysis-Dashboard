@@ -237,7 +237,7 @@ def plot_population_change(census_all, state):
 
     # Create two bar charts side by side
     bar_fig = make_subplots(
-        rows=1, cols=2, subplot_titles=(f"Top 10 Growing Counties in {state}", f"Top 10 Declining Counties in {state}")
+        rows=1, cols=2, subplot_titles=(f"Top 10 Growing Cities in {state}", f"Top 10 Declining Counties in {state}")
     )
 
     # Top growing counties
@@ -309,8 +309,8 @@ def gentrification_analysis(census_data, state):
         y='gentrification_score',
         color='gentrification_score',
         color_continuous_scale='RdYlGn',
-        labels={'name': 'County', 'gentrification_score': 'Gentrification Score'},
-        title=f'Top 15 Counties by Gentrification Score (2015-2017) - {state}'
+        labels={'name': 'City', 'gentrification_score': 'Gentrification Score'},
+        title=f'Top 15 Cities by Gentrification Score (2015-2017) - {state}'
     )
     fig_bar.update_layout(xaxis_tickangle=-45)
     st.plotly_chart(fig_bar, use_container_width=True)
